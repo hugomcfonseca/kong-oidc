@@ -1,13 +1,13 @@
 package = "kong-oidc"
-version = "1.0.4-0"
+version = "1.0.4-1"
 source = {
-    url = "git://github.com/nokia/kong-oidc",
-    tag = "v1.0.4",
-    dir = "kong-oidc"
+   url = "git://github.com/hugomcfonseca/kong-oidc",
+   tag = "v1.0.4",
+   dir = "kong-oidc"
 }
 description = {
-    summary = "A Kong plugin for implementing the OpenID Connect Relying Party (RP) functionality",
-    detailed = [[
+   summary = "A Kong plugin for implementing the OpenID Connect Relying Party (RP) functionality",
+   detailed = [[
         kong-oidc is a Kong plugin for implementing the OpenID Connect Relying Party.
 
         When used as an OpenID Connect Relying Party it authenticates users against an OpenID Connect Provider using OpenID Connect Discovery and the Basic Client Profile (i.e. the Authorization Code flow).
@@ -18,19 +18,20 @@ description = {
 
         It can be used as a reverse proxy terminating OAuth/OpenID Connect in front of an origin server so that the origin server/services can be protected with the relevant standards without implementing those on the server itself.
     ]],
-    homepage = "https://github.com/nokia/kong-oidc",
-    license = "Apache 2.0"
+   homepage = "https://github.com/hugomcfonseca/kong-oidc",
+   license = "Apache 2.0"
 }
 dependencies = {
-    "lua-resty-openidc ~> 1.4.0-1"
+   "lua-resty-openidc >= 1.5.1-1"
 }
 build = {
-    type = "builtin",
-    modules = {
-    ["kong.plugins.oidc.filter"] = "kong/plugins/oidc/filter.lua",
-    ["kong.plugins.oidc.handler"] = "kong/plugins/oidc/handler.lua",
-    ["kong.plugins.oidc.schema"] = "kong/plugins/oidc/schema.lua",
-    ["kong.plugins.oidc.session"] = "kong/plugins/oidc/session.lua",
-    ["kong.plugins.oidc.utils"] = "kong/plugins/oidc/utils.lua"
-    }
+   type = "builtin",
+   modules = {
+      ["kong.plugins.kong-oidc.filter"] = "kong/plugins/oidc/filter.lua",
+      ["kong.plugins.kong-oidc.access"] = "kong/plugins/oidc/access.lua",
+      ["kong.plugins.kong-oidc.handler"] = "kong/plugins/oidc/handler.lua",
+      ["kong.plugins.kong-oidc.schema"] = "kong/plugins/oidc/schema.lua",
+      ["kong.plugins.kong-oidc.session"] = "kong/plugins/oidc/session.lua",
+      ["kong.plugins.kong-oidc.utils"] = "kong/plugins/oidc/utils.lua"
+   }
 }

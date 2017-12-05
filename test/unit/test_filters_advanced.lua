@@ -1,4 +1,4 @@
-local filter = require("kong.plugins.oidc.filter")
+local filter = require("kong.plugins.kong-oidc.filter")
 local lu = require("luaunit")
 
 TestFilter = require("test.unit.mockable_case"):extend()

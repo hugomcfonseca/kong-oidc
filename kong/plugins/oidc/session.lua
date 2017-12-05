@@ -1,4 +1,4 @@
-local utils = require("kong.plugins.oidc.utils")
+local utils = require("kong.plugins.kong-oidc.utils")
 
 local M = {}
 

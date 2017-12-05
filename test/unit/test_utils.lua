@@ -1,4 +1,4 @@
-local utils = require("kong.plugins.oidc.utils")
+local utils = require("kong.plugins.kong-oidc.utils")
 local lu = require("luaunit")
 
 TestUtils = require("test.unit.base_case"):extend()

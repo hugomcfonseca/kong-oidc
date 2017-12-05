@@ -1,3 +1,6 @@
+local constants   = require "kong.constants"
+local singletons  = require "kong.singletons"
+
 local M = {}
 
 local function parseFilters(csvFilters)
@@ -8,6 +11,22 @@ local function parseFilters(csvFilters)
     end
   end
   return filters
+end
+
+local function load_consumer_into_memory(username)
+  local result, err = singletons.dao.consumers:find_all({username = username})
+  
+  if err then 
+    return nil, err
+  end
+
+  return result[1]
+end
+
+local function addConsumerHeaders(consumer)
+  ngx.header[constants.HEADERS.CONSUMER_ID] = consumer.id
+  ngx.header[constants.HEADERS.CONSUMER_CUSTOM_ID] = consumer.custom_id
+  ngx.header[constants.HEADERS.CONSUMER_USERNAME] = consumer.username
 end
 
 function M.get_redirect_uri_path(ngx)
@@ -49,6 +68,7 @@ function M.get_options(config, ngx)
     ssl_verify = config.ssl_verify,
     token_endpoint_auth_method = config.token_endpoint_auth_method,
     recovery_page_path = config.recovery_page_path,
+    hosted_domain = config.hosted_domain,
     filters = parseFilters(config.filters)
   }
 end
@@ -61,9 +81,17 @@ end
 
 function M.injectUser(user)
   local tmp_user = user
-  tmp_user.id = user.sub
-  tmp_user.username = user.preferred_username
-  ngx.ctx.authenticated_consumer = tmp_user
+
+  local consumer_cache_key = singletons.dao.consumers:cache_key("")
+  local consumer, err      = singletons.cache:get(consumer_cache_key, nil, load_consumer_into_memory, user.email, true)
+
+  if consumer then
+    addConsumerHeaders(consumer)
+  end
+
+  tmp_user.id = consumer_id
+  tmp_user.username = consumer.username
+  ngx.ctx.authenticated_consumer = consumer
 end
 
 function M.has_bearer_access_token()
