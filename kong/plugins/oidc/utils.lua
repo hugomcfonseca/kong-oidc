@@ -14,7 +14,6 @@ local function parseFilters(csvFilters)
 end
 
 local function load_consumer_into_memory(email)
-  ngx.log(ngx.DEBUG, email)
   local rows, err = singletons.dao.consumers:find_all {
     username = email
   }
@@ -25,14 +24,32 @@ local function load_consumer_into_memory(email)
 
   if #rows > 0 then
     for _, row in ipairs(rows) do
-      return row
+      if row.username == email then
+        ngx.log(ngx.DEBUG, "Matched consumer...")
+        return row
+      end
     end
   end
 
   return false
 end
 
-local function addConsumerHeaders(consumer)
+function M.searchConsumer(user)
+  local consumer_cache_key = singletons.dao.consumers:cache_key("")
+  local consumer, err      = singletons.cache:get(consumer_cache_key, nil, load_consumer_into_memory, user.email, true)
+
+  if err then 
+    return nil, err
+  end
+
+  if not consumer then 
+    return false
+  end
+
+  return consumer
+end
+
+function M.injectConsumerHeaders(consumer)
   ngx.header[constants.HEADERS.CONSUMER_ID] = consumer.id
   ngx.header[constants.HEADERS.CONSUMER_CUSTOM_ID] = consumer.custom_id
   ngx.header[constants.HEADERS.CONSUMER_USERNAME] = consumer.username
@@ -87,22 +104,6 @@ function M.exit(httpStatusCode, message, ngxCode)
   ngx.status = httpStatusCode
   ngx.say(message)
   ngx.exit(ngxCode)
-end
-
-function M.injectUser(user)
-  local tmp_user = user
-
-  local consumer_cache_key = singletons.dao.consumers:cache_key("")
-  local consumer, err      = singletons.cache:get(consumer_cache_key, nil, load_consumer_into_memory, user.email, true)
-
-  if consumer ~= nil or consumer ~= false then
-    addConsumerHeaders(consumer)
-    ngx.ctx.authenticated_consumer = consumer
-  elseif consumer== nil then
-    exit(500, err, ngx.HTTP_INTERNAL_SERVER_ERROR)
-  else
-    exit(403, err, ngx.HTTP_FORBIDDEN)
-  end
 end
 
 function M.has_bearer_access_token()

@@ -26,8 +26,16 @@ function handle(oidcConfig)
         end      
       end
 
-      utils.injectUser(response.user)
-      --ngx.header("X-Userinfo"] = cjson.encode(response.user)
+      consumer, err = utils.searchConsumer(response.user)
+
+      if consumer == nil then
+        utils.exit(500, err, ngx.HTTP_INTERNAL_SERVER_ERROR)
+      elseif consumer == false then
+        utils.exit(500, err, ngx.HTTP_FORBIDDEN)
+      else
+        utils.injectConsumerHeaders(consumer)
+        ngx.ctx.authenticated_consumer = consumer
+      end
     end
   end
 end
