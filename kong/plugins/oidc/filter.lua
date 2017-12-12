@@ -1,47 +1,40 @@
 local M = {}
 
-local function shouldIgnoreRequest(patterns)
-  if (patterns) then
-    for _, pattern in ipairs(patterns) do
-      local isMatching = not (string.find(ngx.var.uri, pattern) == nil)
-      if (isMatching) then 
-        return true 
-      end
+local function should_ignore_request(patterns)
+    if patterns then
+        for _, pattern in ipairs(patterns) do
+            local isMatching = not (string.find(ngx.var.uri, pattern) == nil)
+            if (isMatching) then
+                return true
+            end
+        end
     end
-  end
 
-  return false
-end
-
-local function isAllowedDomain(domain_from_provider, expected_domain)
-  domain_from_provider = domain_from_provider or ""
-  expected_domain = expected_domain or ""
-
-  if (domain_from_provider == "") then
     return false
-  elseif (domain_from_provider ~= "" and expected_domain ~= "") then
-    if (domain_from_provider ~= expected_domain) then
-      return false 
-    end
-  end
-
-  return true
 end
 
-function M.shouldProcessRequest(config, hd_from_provider)
-  hd_from_provider = hd_from_provider or ""
-  condition1 = true
-  condition2 = true
+local function is_allowed_domain(provider_domain, allowed_domain)
+    if provider_domain == "" or provider_domain == nil then
+        err = "No domain was received from provider's info."
+        return false, err
+    elseif allowed_domain == "" or allowed_domain == nil then
+        return true
+    else 
+        if provider_domain ~= allowed_domain then
+            err = "Provider and allowed domains does not match."
+            return false, err
+        end
+    end
 
-  if config.filters ~= "" then
-    condition1 = not shouldIgnoreRequest(config.filters)
-  end
+    return true
+end
 
-  if hd_from_provider ~= "" then
-    condition2 = isAllowedDomain(hd_from_provider, config.hosted_domain)
-  end
+function M.should_process_request(filters)
+    return (not should_ignore_request(filters))
+end
 
-  return (condition1 and condition2)
+function M.should_unauthorize_request(hd, allowed_domain)
+    return (not is_allowed_domain(hd, allowed_domain))
 end
 
 return M
