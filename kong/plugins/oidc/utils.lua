@@ -94,6 +94,7 @@ function M.get_options(config, ngx)
         token_endpoint_auth_method = config.token_endpoint_auth_method,
         recovery_page_path = config.recovery_page_path,
         hosted_domain = config.hosted_domain,
+        session_secret = config.session_secret,
         filters = parse_filters(config.filters)
     }
 end
